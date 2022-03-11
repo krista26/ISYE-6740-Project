@@ -12,7 +12,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 
-#set working directory to yalefaces
+#set working directory to ISYE 6740
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
