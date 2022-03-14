@@ -56,48 +56,6 @@ print(testing.shape)
 testinghealthy=healthylist[:500]
 
 
-# %% Adjacency matrix
-from scipy.spatial import distance
-
-def calc_adjmat(data, threshold, dist):
-    #create adjacency matrix
-    adjmat= np.zeros((len(data),len(data)))
-    
-    #fill adjacency matrix
-    distmat=distance.cdist(data, data, dist)
-    ind=distmat<threshold
-    adjmat[ind]=distmat[ind]
-    # for i, row1 in enumerate(data):
-    #     for j, row2 in enumerate(data):
-    #         if i==j:
-    #             pass
-    #         else:
-    #             diff=np.linalg.norm(row1-row2)
-    #             if diff<threshold:
-    #                 adjmat[i][j]=diff
-    #                 adjmat[j][i]=diff
-                #print(f'difference between row{i} and row{j} is {diff}')
-    return adjmat
-
-adjmat=calc_adjmat(testinghealthy, 300000,'cityblock')
-print(adjmat)
-
-
-#%% Testing which threshold value to use, displaying network graphs
-import networkx as nx
-
-#Values of interest for not healthy 280100,280200,280300
-
-for i in [200000,220000,250000]:
-    adjmat= calc_adjmat(testinghealthy, i, 'cityblock')
-    G = nx.from_numpy_matrix(np.matrix(adjmat))
-    pos = nx.spring_layout(G, k=0.3*1/np.sqrt(len(G.nodes())), iterations=20)
-    #found on https://stackoverflow.com/questions/49121491/issue-with-spacing-nodes-in-networkx-graph to help with node spacing
-    plt.figure(3, figsize=(10,10))
-    nx.draw(G, with_labels=True, pos=pos)
-    plt.title(f'Adjacency graph with threshold set to {i}')
-    plt.show()
-
 
 #%%
 from sklearn.model_selection import train_test_split
