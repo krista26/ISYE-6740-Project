@@ -12,7 +12,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 
-#set working directory to ISYE 6740
+#set working directory to yalefaces
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
@@ -40,7 +40,7 @@ for name in ['\Brain Tumor','\Healthy']:
            
 # %% testing
 
-print(tumorlist[1].shape)
+print(tumorlist[1])
 
 # %% Converting list to array and deleting images which are the incorrect size
 tumorlist=np.asarray(tumorlist)
@@ -54,6 +54,7 @@ testing=tumorlist[:500]
 print(testing.shape)
 
 testinghealthy=healthylist[:500]
+
 
 
 #%%
@@ -86,29 +87,59 @@ preds=logreg.predict(xtest)
 print(confusion_matrix(ytest, preds))
 print(classification_report(ytest,preds))
 
+# %% Downloading second data set
+
+
+tumorlist2=[]
+healthylist2=[]
+for name in ['\\yes','\\no']:
+    valid_image=['.jpg', '.gif', '.png']
+    for f in os.listdir(dname+name):
+        ext= os.path.splitext(f)[1]
+        if ext.lower() not in valid_image:
+            continue
+        img=(Image.open(os.path.join(dname+name,f)))
+        #Resizing all images to be the same size so processing is easier
+        img=img.resize((64,64))
+        img=np.asarray(img)
+        img=np.dot(img[...,:3], rgb)
+        img=img.flatten()
+        if not img.shape==(64,):
+            if name=='\\yes':
+                tumorlist2.append(img)
+            else:
+                healthylist2.append(np.asarray(img)) 
+                
+# %% 
+print(tumorlist2[:5])
+print(tumorlist[:5])
 
 # %% Plotting 4 random tumors
+#Comment/uncomment to switch data set
+#dataset=tumorlist
+dataset=tumorlist2
 
 f, axarr = plt.subplots(1,4)
-rands=np.random.randint(0,len(tumorlist),4)
-axarr[0].imshow(tumorlist[rands[0]].reshape(64,64), cmap='gray')
-axarr[1].imshow(tumorlist[rands[1]].reshape(64,64),cmap='gray')
-axarr[2].imshow(tumorlist[rands[2]].reshape(64,64),cmap='gray')
-axarr[3].imshow(tumorlist[rands[3]].reshape(64,64),cmap='gray')
+rands=np.random.randint(0,len(dataset),4)
+axarr[0].imshow(dataset[rands[0]].reshape(64,64), cmap='gray')
+axarr[1].imshow(dataset[rands[1]].reshape(64,64),cmap='gray')
+axarr[2].imshow(dataset[rands[2]].reshape(64,64),cmap='gray')
+axarr[3].imshow(dataset[rands[3]].reshape(64,64),cmap='gray')
 plt.suptitle("4 Random Brains with Tumors", y=.7)
 plt.subplots_adjust(wspace=0.4)
 
 # %% Plotting 4 random healthy brains
+#Comment/uncomment to switch data set
+#healthyset=healthylist
+healthyset=healthylist2
 f, axarr = plt.subplots(1,4)
-rands=np.random.randint(0,len(healthylist),4)
-axarr[0].imshow(healthylist[rands[0]].reshape(64,64), cmap='gray')
-axarr[1].imshow(healthylist[rands[1]].reshape(64,64),cmap='gray')
-axarr[2].imshow(healthylist[rands[2]].reshape(64,64),cmap='gray')
-axarr[3].imshow(healthylist[rands[3]].reshape(64,64),cmap='gray')
+rands=np.random.randint(0,len(healthyset),4)
+axarr[0].imshow(healthyset[rands[0]].reshape(64,64), cmap='gray')
+axarr[1].imshow(healthyset[rands[1]].reshape(64,64),cmap='gray')
+axarr[2].imshow(healthyset[rands[2]].reshape(64,64),cmap='gray')
+axarr[3].imshow(healthyset[rands[3]].reshape(64,64),cmap='gray')
 plt.suptitle("4 Random Brains without Tumors", y=.7)
 plt.subplots_adjust(wspace=0.4)
-
-
 
 
 
