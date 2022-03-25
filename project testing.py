@@ -30,6 +30,12 @@ for name in ['\Brain Tumor','\Healthy']:
         #Resizing all images to be the same size so processing is easier
         img=img.resize((64,64))
         img=np.asarray(img)
+        #Add greyscale images to list before processing more
+        if img.shape==(64,64):
+            if name=='\Brain Tumor':
+                tumorlist.append(img)
+            else:
+                healthylist.append(np.asarray(img))   
         img=np.dot(img[...,:3], rgb)
         img=img.flatten()
         if not img.shape==(64,):
@@ -102,6 +108,11 @@ for name in ['\\yes','\\no']:
         #Resizing all images to be the same size so processing is easier
         img=img.resize((64,64))
         img=np.asarray(img)
+        if img.shape==(64,64):
+            if name=='\\yes':
+                tumorlist2.append(img)
+            else:
+                healthylist2.append(np.asarray(img)) 
         img=np.dot(img[...,:3], rgb)
         img=img.flatten()
         if not img.shape==(64,):
