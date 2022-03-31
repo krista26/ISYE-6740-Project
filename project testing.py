@@ -2,7 +2,7 @@
 """
 Created on Mon Mar  7 17:49:34 2022
 
-@author: krist
+@author: krista, sean, sandra
 """
 
 import scipy.io
