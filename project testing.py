@@ -2,7 +2,7 @@
 """
 Created on Mon Mar  7 17:49:34 2022
 
-@author: krista, sean, sandra
+@author: krist
 """
 
 import scipy.io
@@ -16,65 +16,98 @@ import matplotlib.pyplot as plt
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
+
+#rgb conversions
 rgb=np.array([0.299,0.587,0.114])
 
-tumorlist=[]
-healthylist=[]
-for name in ['\Brain Tumor','\Healthy']:
-    valid_image=['.jpg', '.gif', '.png']
-    for f in os.listdir(dname+name):
-        ext= os.path.splitext(f)[1]
-        if ext.lower() not in valid_image:
-            continue
-        img=(Image.open(os.path.join(dname+name,f)))
-        #Resizing all images to be the same size so processing is easier
-        img=img.resize((64,64))
-        img=np.asarray(img)
-        #Add greyscale images to list before processing more
-        if img.shape==(64,64):
-            if name=='\Brain Tumor':
-                tumorlist.append(img)
+#Valid image types
+valid_image=['.jpg', '.gif', '.png']
+
+#Folder paths needed to extract images
+set1paths=['\Brain Tumor','\Healthy']
+set2paths=['\\yes','\\no']
+
+
+def downloadimages(paths,valid_images):
+    tumor=[]
+    healthy=[]
+    for ind,name in enumerate(paths):
+        for f in os.listdir(dname+name):
+            ext= os.path.splitext(f)[1]
+            if ext.lower() not in valid_images:
+                continue
+            img=(Image.open(os.path.join(dname+name,f)))
+            
+            #Resizing all images to be the same size
+            img=img.resize((64,64))
+            img=np.asarray(img)
+            
+            #If image is in color, convert to greyscale
+            if not img.shape==(64,64):
+                img=np.dot(img[...,:3], rgb)
+                
+            #Remove white borders if they are present
+            if img[0][0]>50:
+                img=whiteborders(img)
+                
+            #Add images to a list based on if they represent tumor or not
+            if ind==0:
+                tumor.append(img.flatten())
             else:
-                healthylist.append(np.asarray(img))   
-        img=np.dot(img[...,:3], rgb)
-        img=img.flatten()
-        if not img.shape==(64,):
-            if name=='\Brain Tumor':
-                tumorlist.append(img)
-            else:
-                healthylist.append(np.asarray(img)) 
+                healthy.append(img.flatten()) 
+    #Convert output lists into arrays            
+    tumor=np.asarray(tumor)
+    healthy=np.asarray(healthy)
+    return tumor, healthy
+
+#function to remove white borders if the pic has one
+def whiteborders(img):
+    cop=img.copy()
+    if np.mean(cop[0,:])>50:
+        cop[0,:]=0
+    if np.mean(cop[-1,:])>50:
+        cop[-1,:]=0
+    if np.mean(cop[:,0])>50:
+        cop[:,0]=0
+    if np.mean(cop[:,-1])>50:
+        cop[:,-1]=0
+    return cop
+
+# %% Downloading both data sets and storing in arrays
+
+tumor1, healthy1=downloadimages(set1paths, valid_image)
+tumor2, healthy2=downloadimages(set2paths, valid_image)
+
+                
            
 # %% testing
 
-print(tumorlist[1])
-
-# %% Converting list to array and deleting images which are the incorrect size
-tumorlist=np.asarray(tumorlist)
-healthylist=np.array(healthylist)
-print(healthylist.shape)
+print(len(tumor1))
+print(len(healthy1))
+print(len(tumor2))
+print(len(healthy2))
 
 
 
-# %% Playing around with a small subset
-testing=tumorlist[:500]
-print(testing.shape)
 
-testinghealthy=healthylist[:500]
-
-
-
-#%%
+#%% Concatenating data sets, shuffling data, and creating test/train splits
 from sklearn.model_selection import train_test_split
-tumor=np.ones(len(tumorlist))
-notumor=np.zeros(len(healthylist))
+tumor=np.ones(len(tumor1))
+notumor=np.zeros(len(healthy1))
 
-together=np.concatenate((tumorlist, healthylist))
+together=np.concatenate((tumor1, healthy1))
 togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
 
 print(togethery.shape)
+print(together.shape)
 
 data=np.append(together, togethery, axis=1)
 print(data.shape)
+
+#Shuffle data
+np.random.seed(2)
+shuff=np.random.permutation(len(data))
+data=data[shuff,:]
 
 #Train test split
 train, test= train_test_split(data, test_size=0.2)
@@ -93,42 +126,11 @@ preds=logreg.predict(xtest)
 print(confusion_matrix(ytest, preds))
 print(classification_report(ytest,preds))
 
-# %% Downloading second data set
-
-
-tumorlist2=[]
-healthylist2=[]
-for name in ['\\yes','\\no']:
-    valid_image=['.jpg', '.gif', '.png']
-    for f in os.listdir(dname+name):
-        ext= os.path.splitext(f)[1]
-        if ext.lower() not in valid_image:
-            continue
-        img=(Image.open(os.path.join(dname+name,f)))
-        #Resizing all images to be the same size so processing is easier
-        img=img.resize((64,64))
-        img=np.asarray(img)
-        if img.shape==(64,64):
-            if name=='\\yes':
-                tumorlist2.append(img)
-            else:
-                healthylist2.append(np.asarray(img)) 
-        img=np.dot(img[...,:3], rgb)
-        img=img.flatten()
-        if not img.shape==(64,):
-            if name=='\\yes':
-                tumorlist2.append(img)
-            else:
-                healthylist2.append(np.asarray(img)) 
-                
-# %% 
-print(tumorlist2[:5])
-print(tumorlist[:5])
 
 # %% Plotting 4 random tumors
 #Comment/uncomment to switch data set
-#dataset=tumorlist
-dataset=tumorlist2
+dataset=tumor1
+#dataset=tumor2
 
 f, axarr = plt.subplots(1,4)
 rands=np.random.randint(0,len(dataset),4)
@@ -141,8 +143,8 @@ plt.subplots_adjust(wspace=0.4)
 
 # %% Plotting 4 random healthy brains
 #Comment/uncomment to switch data set
-#healthyset=healthylist
-healthyset=healthylist2
+#healthyset=healthy1
+healthyset=healthy2
 f, axarr = plt.subplots(1,4)
 rands=np.random.randint(0,len(healthyset),4)
 axarr[0].imshow(healthyset[rands[0]].reshape(64,64), cmap='gray')
