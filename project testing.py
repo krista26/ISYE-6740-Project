@@ -42,13 +42,21 @@ def downloadimages(paths,valid_images):
                 continue
             img=(Image.open(os.path.join(dname+name,f)))
             
-            #Resizing all images to be the same size
-            img=img.resize((64,64))
+           #Resizing all images to be the same size
+            # if images are square, just resize
+            if img.size[0]==img.size[1]:
+                img=img.resize((64,64))
+            
+            #if images are rectangle, resize and crop
+            else:
+                img=resizecrop(img)
+                
+            #convert to array for further processing
             img=np.asarray(img)
             
             #If image is in color, convert to greyscale
             if not img.shape==(64,64):
-                img=np.dot(img[...,:3], rgb)
+                img=convertgrey(img)
                 
             #Remove white borders if they are present
             if img[0][0]>50:
@@ -76,7 +84,40 @@ def whiteborders(img):
     if np.mean(cop[:,-1])>50:
         cop[:,-1]=0
     return cop
+def resizecrop(img):
+    side=64
+    shortside=np.argmin(np.array(img).shape[:2])
+    #np array switched the indexes, so 1 is the index of the width
+    if shortside==1:
+        #converting the width to 64, keeping aspect ratio of width
+        wpercent = (side/float(img.size[0]))
+        hsize = int((float(img.size[1])*float(wpercent)))
+        img = img.resize((side,hsize), Image.ANTIALIAS)
+        #calculate the extra pixels on either side of image
+        leftover=(img.size[1]-img.size[0])//2
+        w,h=img.size
+        #crop extra pixels off
+        img=img.crop((0,leftover,w,h-leftover))
+    else:
+        #converting height to 64, keeps aspect ratio for height
+        hpercent=(side/float(img.size[1]))
+        wsize=int((float(img.size[0])*float(hpercent)))
+        img=img.resize((wsize,side),Image.ANTIALIAS)
+        #calculate extra pixels on either side
+        leftover=(img.size[0]-img.size[1])//2
+        w,h=img.size
+        #crop extra pixels off
+        img=img.crop((leftover,0,w-leftover,h))
+        
+    #failsafe resize just incase there were odd numbers
+    if not img.size==(64,64):
+        img=img.resize((64,64))
+    return img
 
+def convertgrey(img):
+    #rgb conversions
+    rgb=np.array([0.299,0.587,0.114])
+    return np.dot(img[...,:3], rgb)
 
 def main():
     # %% Downloading both data sets and storing in arrays
