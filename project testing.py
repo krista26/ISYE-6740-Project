@@ -16,13 +16,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 
-#set working directory to yalefaces
+#set working directory
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
-
-#rgb conversions
-rgb=np.array([0.299,0.587,0.114])
 
 #Valid image types
 valid_image=['.jpg', '.gif', '.png']
