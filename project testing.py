@@ -47,6 +47,13 @@ def downloadimages(paths,valid_images):
             #if images are rectangle, resize and crop
             else:
                 img=resizecrop(img)
+            
+            #img_r = rotate(img)
+            #print('img_r: ', np.asarray(img_r).shape)
+            #img_t = translate(img)
+            #print('img_t: ', np.asarray(img_t).shape)
+            #img_c = crop(img)
+            #print('img_c: ', np.asarray(img_c).shape)
                 
             #convert to array for further processing
             img=np.asarray(img)
@@ -115,6 +122,36 @@ def convertgrey(img):
     #rgb conversions
     rgb=np.array([0.299,0.587,0.114])
     return np.dot(img[...,:3], rgb)
+
+def rotate(img):
+    img_r = img.rotate(90, Image.NEAREST, expand = 1)
+    img_r.save('rotate.png')
+    return img_r
+
+def translate(img):
+    a = 1
+    b = 0
+    c = 5 #left/right (i.e. 5/-5)
+    d = 0
+    e = 1
+    f = 5 #up/down (i.e. 5/-5)
+    img_t = img.transform(img.size, Image.AFFINE, (a, b, c, d, e, f))
+    img_t.save('translate.png')
+    return img_t
+
+def crop(img):
+    width, height = img.size
+    
+    # Setting the points for cropped image
+    left = 5
+    top = height / 2
+    right = 10
+    bottom = 3 * height / 2
+    
+    # Cropped image of above dimension
+    img_c = img.crop((left, top, right, bottom))
+    img_c.save('crop.png')
+    return img_c
 
 def main():
     # %% Downloading both data sets and storing in arrays
