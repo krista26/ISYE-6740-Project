@@ -125,7 +125,6 @@ def convertgrey(img):
 
 def rotate(img):
     img_r = img.rotate(90, Image.NEAREST, expand = 1)
-    img_r.save('rotate.png')
     return img_r
 
 def translate(img):
@@ -136,7 +135,6 @@ def translate(img):
     e = 1
     f = 5 #up/down (i.e. 5/-5)
     img_t = img.transform(img.size, Image.AFFINE, (a, b, c, d, e, f))
-    img_t.save('translate.png')
     return img_t
 
 def crop(img):
@@ -150,7 +148,6 @@ def crop(img):
     
     # Cropped image of above dimension
     img_c = img.crop((left, top, right, bottom))
-    img_c.save('crop.png')
     return img_c
 
 def main():
