@@ -48,12 +48,13 @@ def downloadimages(paths,valid_images):
             else:
                 img=resizecrop(img)
             
-            #img_r = rotate(img)
-            #print('img_r: ', np.asarray(img_r).shape)
-            #img_t = translate(img)
-            #print('img_t: ', np.asarray(img_t).shape)
-            #img_c = crop(img)
-            #print('img_c: ', np.asarray(img_c).shape)
+            #happens after cropping and resizing
+            #Rotate image
+            #img = rotate(img)
+
+            #Translate image
+            #img = translate(img)
+
                 
             #convert to array for further processing
             img=np.asarray(img)
@@ -88,6 +89,7 @@ def whiteborders(img):
     if np.mean(cop[:,-1])>50:
         cop[:,-1]=0
     return cop
+
 def resizecrop(img):
     side=64
     shortside=np.argmin(np.array(img).shape[:2])
@@ -137,26 +139,11 @@ def translate(img):
     img_t = img.transform(img.size, Image.AFFINE, (a, b, c, d, e, f))
     return img_t
 
-def crop(img):
-    width, height = img.size
-    
-    # Setting the points for cropped image
-    left = 5
-    top = height / 2
-    right = 10
-    bottom = 3 * height / 2
-    
-    # Cropped image of above dimension
-    img_c = img.crop((left, top, right, bottom))
-    return img_c
-
 def main():
     # %% Downloading both data sets and storing in arrays
 
     tumor1, healthy1=downloadimages(set1paths, valid_image)
     tumor2, healthy2=downloadimages(set2paths, valid_image)
-
-                    
             
     # %% testing
 
@@ -164,8 +151,6 @@ def main():
     print(len(healthy1))
     print(len(tumor2))
     print(len(healthy2))
-
-
 
 
     #%% Concatenating data sets, shuffling data, and creating test/train splits
