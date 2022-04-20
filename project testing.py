@@ -77,6 +77,43 @@ def downloadimages(paths,valid_images):
     healthy=np.asarray(healthy)
     return tumor, healthy
 
+def Whiten_White_Blacken_Black(img):
+    img = skimage.io.imread(img)
+    
+    # convert the image to grayscale
+    gray_image = skimage.color.rgb2gray(img)
+
+    # blur the image to denoise
+    blurred_image = skimage.filters.gaussian(gray_image, sigma=1.0)
+    
+    # create a histogram of the blurred grayscale image (can comment out)
+    histogram, bin_edges = np.histogram(blurred_image, bins=256, range=(0.0, 1.0))
+
+#     fig, ax = plt.subplots()
+#     plt.plot(bin_edges[0:-1], histogram)
+#     plt.title("Grayscale Histogram")
+#     plt.xlabel("grayscale value")
+#     plt.ylabel("pixels")
+#     plt.xlim(0, 1.0)
+#     plt.show()
+    
+    NOISE_FLOOR = 0.01;
+    WHITE_CEILING = 0.5;
+    BLACK_THRE = 1;
+    def whiten_whites(noisy_img, noise_ceiling=WHITE_CEILING):
+        clean_img = np.array(noisy_img)
+        clean_img[noisy_img > WHITE_CEILING] = 1
+        return clean_img
+    white_image = whiten_whites(blurred_image, noise_ceiling=WHITE_CEILING)
+
+    def blacken_blacks(noisy_img, noise_floor=NOISE_FLOOR):
+        clean_img = np.array(noisy_img)
+        clean_img[noisy_img < NOISE_FLOOR] = 0
+        return clean_img
+    black_image = blacken_blacks(white_image, noise_floor=NOISE_FLOOR)
+    return plt.imshow(black_image, cmap='gray')
+
+
 #function to remove white borders if the pic has one
 def whiteborders(img):
     cop=img.copy()
