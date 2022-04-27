@@ -2,24 +2,22 @@
 """
 Created on Mon Mar  7 17:49:34 2022
 
-@authors: 
-1.	Krista Radecke (GT ID: 903736778)
-2.	Sandra Kim (GT ID: 902745258)
-3.	Sean Lee (GT ID: 903648883)
-
+@author: krist
 """
 
 import scipy.io
 import os
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps, ImageFilter
 import matplotlib.pyplot as plt
 
 
-#set working directory
+#set working directory to folder that file is in
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
+
+
 
 #Valid image types
 valid_image=['.jpg', '.gif', '.png']
@@ -27,19 +25,39 @@ valid_image=['.jpg', '.gif', '.png']
 #Folder paths needed to extract images
 set1paths=['\Brain Tumor','\Healthy']
 set2paths=['\\yes','\\no']
+testimg=[]
 
+tum1=4508
+tum2=3000
 
-def downloadimages(paths,valid_images):
+def downloadimages(paths,valid_images,num):
     tumor=[]
     healthy=[]
+    if num==1:
+        rands20r=np.random.randint(0,4508, 901)
+        rands20t=np.random.randint(0,4508, 901)
+    else:
+        rands20r=np.random.randint(0,3000, 600)
+        rands20t=np.random.randint(0,3000, 600)
     for ind,name in enumerate(paths):
-        for f in os.listdir(dname+name):
+        for ind2, f in enumerate(os.listdir(dname+name)):
             ext= os.path.splitext(f)[1]
             if ext.lower() not in valid_images:
                 continue
             img=(Image.open(os.path.join(dname+name,f)))
             
-           #Resizing all images to be the same size
+            #convert all images to greyscale
+            img=ImageOps.grayscale(img)
+            
+            testimg.append(img)
+            
+            #randomly rotation and translating
+            if ind2 in rands20r:
+                img=rotate(img)
+            if ind2 in rands20t:
+                img=translate(img)
+            
+            #Resizing all images to be the same size
             # if images are square, just resize
             if img.size[0]==img.size[1]:
                 img=img.resize((64,64))
@@ -47,22 +65,13 @@ def downloadimages(paths,valid_images):
             #if images are rectangle, resize and crop
             else:
                 img=resizecrop(img)
-            
-            #happens after cropping and resizing
-            #Rotate image
-            #img = rotate(img)
-
-            #Translate image
-            #img = translate(img)
-
                 
             #convert to array for further processing
             img=np.asarray(img)
+
+            # whiten/blacken
+            img= Whiten_White_Blacken_Black(img)
             
-            #If image is in color, convert to greyscale
-            if not img.shape==(64,64):
-                img=convertgrey(img)
-                
             #Remove white borders if they are present
             if img[0][0]>50:
                 img=whiteborders(img)
@@ -72,46 +81,27 @@ def downloadimages(paths,valid_images):
                 tumor.append(img.flatten())
             else:
                 healthy.append(img.flatten()) 
+                
     #Convert output lists into arrays            
     tumor=np.asarray(tumor)
     healthy=np.asarray(healthy)
     return tumor, healthy
 
 def Whiten_White_Blacken_Black(img):
-    img = skimage.io.imread(img)
-    
-    # convert the image to grayscale
-    gray_image = skimage.color.rgb2gray(img)
 
-    # blur the image to denoise
-    blurred_image = skimage.filters.gaussian(gray_image, sigma=1.0)
+    NOISE_FLOOR = 25;
+    WHITE_CEILING = 230;
     
-    # create a histogram of the blurred grayscale image (can comment out)
-    histogram, bin_edges = np.histogram(blurred_image, bins=256, range=(0.0, 1.0))
+    img=img.flatten()
 
-#     fig, ax = plt.subplots()
-#     plt.plot(bin_edges[0:-1], histogram)
-#     plt.title("Grayscale Histogram")
-#     plt.xlabel("grayscale value")
-#     plt.ylabel("pixels")
-#     plt.xlim(0, 1.0)
-#     plt.show()
+    img[img > WHITE_CEILING] = 255
+    img[img < NOISE_FLOOR] = 0
+    return img.reshape(64,64)
     
-    NOISE_FLOOR = 0.01;
-    WHITE_CEILING = 0.5;
-    BLACK_THRE = 1;
-    def whiten_whites(noisy_img, noise_ceiling=WHITE_CEILING):
-        clean_img = np.array(noisy_img)
-        clean_img[noisy_img > WHITE_CEILING] = 1
-        return clean_img
-    white_image = whiten_whites(blurred_image, noise_ceiling=WHITE_CEILING)
-
-    def blacken_blacks(noisy_img, noise_floor=NOISE_FLOOR):
-        clean_img = np.array(noisy_img)
-        clean_img[noisy_img < NOISE_FLOOR] = 0
-        return clean_img
-    black_image = blacken_blacks(white_image, noise_floor=NOISE_FLOOR)
-    return plt.imshow(black_image, cmap='gray')
+def convertgrey(img):
+    #rgb conversions
+    rgb=np.array([0.299,0.587,0.114])
+    return np.dot(img[...,:3], rgb)
 
 
 #function to remove white borders if the pic has one
@@ -157,10 +147,6 @@ def resizecrop(img):
         img=img.resize((64,64))
     return img
 
-def convertgrey(img):
-    #rgb conversions
-    rgb=np.array([0.299,0.587,0.114])
-    return np.dot(img[...,:3], rgb)
 
 def rotate(img):
     img_r = img.rotate(90, Image.NEAREST, expand = 1)
