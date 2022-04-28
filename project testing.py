@@ -206,11 +206,29 @@ def main():
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import classification_report, confusion_matrix
 
-    logreg=LogisticRegression(max_iter=500, solver='newton-cg').fit(xtrain,ytrain)
+    lr=LogisticRegression(max_iter=500, solver='newton-cg').fit(xtrain,ytrain)
+    print('Logistic Regression Classification Report')
+    lr_pred=lr.predict(xtest)
+    print(confusion_matrix(ytest, lr_pred))
+    print(classification_report(ytest,lr_pred))
+
+    # %% Neural Network
+    from sklearn.neural_network import MLPClassifier
+
+    nn = MLPClassifier(max_iter=500, solver='lbfgs', alpha = 1e-5, hidden_layer_sizes=(6,)).fit(xtrain,ytrain)
+    print('Neural Network Classification Report')
+    nn_pred = nn.predict(xtest)
+    print(confusion_matrix(ytest, nn_pred))
+    print(classification_report(ytest,nn_pred))
+
+    # %% Kernel SVM
+    from sklearn.svm import SVC
+
+    ksvm=SVC(max_iter=500, kernel='rbf', gamma = 2).fit(xtrain,ytrain)
     print('Logistic Regression classification Report')
-    preds=logreg.predict(xtest)
-    print(confusion_matrix(ytest, preds))
-    print(classification_report(ytest,preds))
+    ksvm_pred = ksvm.predict(xtest)
+    print(confusion_matrix(ytest, ksvm_pred))
+    print(classification_report(ytest,ksvm_pred))
 
 
     # %% Plotting 4 random tumors
