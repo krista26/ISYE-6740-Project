@@ -30,15 +30,15 @@ testimg=[]
 tum1=4508
 tum2=3000
 
-def downloadimages(paths,valid_images,num):
+def downloadimages(paths,valid_images):
     tumor=[]
     healthy=[]
-    if num==1:
-        rands20r=np.random.randint(0,4508, 901)
-        rands20t=np.random.randint(0,4508, 901)
-    else:
-        rands20r=np.random.randint(0,3000, 600)
-        rands20t=np.random.randint(0,3000, 600)
+    # if num==1:
+    #     rands20r=np.random.randint(0,4508, 901)
+    #     rands20t=np.random.randint(0,4508, 901)
+    # else:
+    #     rands20r=np.random.randint(0,3000, 600)
+    #     rands20t=np.random.randint(0,3000, 600)
     for ind,name in enumerate(paths):
         for ind2, f in enumerate(os.listdir(dname+name)):
             ext= os.path.splitext(f)[1]
@@ -52,10 +52,10 @@ def downloadimages(paths,valid_images,num):
             testimg.append(img)
             
             #randomly rotation and translating
-            if ind2 in rands20r:
-                img=rotate(img)
-            if ind2 in rands20t:
-                img=translate(img)
+            # if ind2 in rands20r:
+            #     img=rotate(img)
+            # if ind2 in rands20t:
+            #     img=translate(img)
             
             #Resizing all images to be the same size
             # if images are square, just resize
@@ -89,8 +89,8 @@ def downloadimages(paths,valid_images,num):
 
 def Whiten_White_Blacken_Black(img):
 
-    NOISE_FLOOR = 25;
-    WHITE_CEILING = 230;
+    NOISE_FLOOR = 20;
+    WHITE_CEILING = 235;
     
     img=img.flatten()
 
@@ -168,67 +168,63 @@ def main():
     tumor1, healthy1=downloadimages(set1paths, valid_image)
     tumor2, healthy2=downloadimages(set2paths, valid_image)
             
-    # %% testing
+    # %% classifier function
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.naive_bayes import GaussianNB
 
-    print(len(tumor1))
-    print(len(healthy1))
-    print(len(tumor2))
-    print(len(healthy2))
 
+first=[tumor1,healthy1]
 
-    #%% Concatenating data sets, shuffling data, and creating test/train splits
-    from sklearn.model_selection import train_test_split
-    tumor=np.ones(len(tumor1))
-    notumor=np.zeros(len(healthy1))
+second=[tumor2,healthy2]
 
-    together=np.concatenate((tumor1, healthy1))
-    togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
+classifiers=[GaussianNB(var_smoothing=10**-3),LogisticRegression(max_iter=500, solver='newton-cg')]
 
-    print(togethery.shape)
-    print(together.shape)
+def run_clfs(classifier):
+    for ind, item in enumerate([first, second]):
+        tumor=np.ones(len(item[0]))
+        notumor=np.zeros(len(item[1]))
+        
+        
+        together=np.concatenate((item[0], item[1]))
+        togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
+        
+        data=np.append(together, togethery, axis=1)
+        
+        #Shuffle data
+        np.random.seed(2)
+        shuff=np.random.permutation(len(data))
+        data=data[shuff,:]
+        
+        #Train test split
+        train, test= train_test_split(data, test_size=0.2)
+        xtrain=train[:,:4096]
+        ytrain=train[:,4096]
+        xtest=test[:,:4096]
+        ytest=test[:,4096]
+        datax=data[:,:4096]
+        datay=data[:,4096]
+        
+        #creating classifier off of first dataset
+        if ind==0:
+            clf=classifier.fit(xtrain,ytrain)
+            print(classifier)
+            print('Classification Report for first dataset')
+            preds=clf.predict(xtest)
+            print(confusion_matrix(ytest, preds))
+            print(classification_report(ytest,preds))
+        #predicts outcome of dataset2 
+        if ind==1:
+            preds2=clf.predict(datax)
+            print(classifier)
+            print('Classification Report for second dataset')
+            print(confusion_matrix(datay, preds2))
+            print(classification_report(datay,preds2))
 
-    data=np.append(together, togethery, axis=1)
-    print(data.shape)
-
-    #Shuffle data
-    np.random.seed(2)
-    shuff=np.random.permutation(len(data))
-    data=data[shuff,:]
-
-    #Train test split
-    train, test= train_test_split(data, test_size=0.2)
-    xtrain=train[:,:4096]
-    ytrain=train[:,4096]
-    xtest=test[:,:4096]
-    ytest=test[:,4096]
-
-    # %% Logistic regression
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import classification_report, confusion_matrix
-
-    lr=LogisticRegression(max_iter=500, solver='newton-cg').fit(xtrain,ytrain)
-    print('Logistic Regression Classification Report')
-    lr_pred=lr.predict(xtest)
-    print(confusion_matrix(ytest, lr_pred))
-    print(classification_report(ytest,lr_pred))
-
-    # %% Neural Network
-    from sklearn.neural_network import MLPClassifier
-
-    nn = MLPClassifier(max_iter=500, solver='lbfgs', alpha = 1e-5, hidden_layer_sizes=(6,)).fit(xtrain,ytrain)
-    print('Neural Network Classification Report')
-    nn_pred = nn.predict(xtest)
-    print(confusion_matrix(ytest, nn_pred))
-    print(classification_report(ytest,nn_pred))
-
-    # %% Kernel SVM
-    from sklearn.svm import SVC
-
-    ksvm=SVC(max_iter=500, kernel='rbf', gamma = 2).fit(xtrain,ytrain)
-    print('Logistic Regression classification Report')
-    ksvm_pred = ksvm.predict(xtest)
-    print(confusion_matrix(ytest, ksvm_pred))
-    print(classification_report(ytest,ksvm_pred))
+for clfs in classifiers:
+    run_clfs(clfs)
+    
 
 
     # %% Plotting 4 random tumors
