@@ -183,13 +183,16 @@ def main():
 
     def run_clfs(classifier):
         for ind, item in enumerate([first, second]):
+            #Creating response vectors 
             tumor=np.ones(len(item[0]))
             notumor=np.zeros(len(item[1]))
 
-
+            #Adding tumorlist to healthy list
             together=np.concatenate((item[0], item[1]))
+            #Adding tumor response to healthy response
             togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
-
+            
+            #Adding response variable to data matrix
             data=np.append(together, togethery, axis=1)
 
             #Shuffle data
