@@ -10,6 +10,11 @@ import os
 import numpy as np
 from PIL import Image, ImageOps, ImageFilter
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.naive_bayes import GaussianNB
+
 
 
 #set working directory to folder that file is in
@@ -169,11 +174,6 @@ def main():
     tumor2, healthy2=downloadimages(set2paths, valid_image)
             
         # %% classifier function
-    from sklearn.model_selection import train_test_split
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import classification_report, confusion_matrix
-    from sklearn.naive_bayes import GaussianNB
-
 
     first=[tumor1,healthy1]
 
