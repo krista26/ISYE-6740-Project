@@ -168,62 +168,62 @@ def main():
     tumor1, healthy1=downloadimages(set1paths, valid_image)
     tumor2, healthy2=downloadimages(set2paths, valid_image)
             
-    # %% classifier function
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.naive_bayes import GaussianNB
+        # %% classifier function
+    from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import classification_report, confusion_matrix
+    from sklearn.naive_bayes import GaussianNB
 
 
-first=[tumor1,healthy1]
+    first=[tumor1,healthy1]
 
-second=[tumor2,healthy2]
+    second=[tumor2,healthy2]
 
-classifiers=[GaussianNB(var_smoothing=10**-3),LogisticRegression(max_iter=500, solver='newton-cg')]
+    classifiers=[GaussianNB(var_smoothing=10**-3),LogisticRegression(max_iter=500, solver='newton-cg')]
 
-def run_clfs(classifier):
-    for ind, item in enumerate([first, second]):
-        tumor=np.ones(len(item[0]))
-        notumor=np.zeros(len(item[1]))
-        
-        
-        together=np.concatenate((item[0], item[1]))
-        togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
-        
-        data=np.append(together, togethery, axis=1)
-        
-        #Shuffle data
-        np.random.seed(2)
-        shuff=np.random.permutation(len(data))
-        data=data[shuff,:]
-        
-        #Train test split
-        train, test= train_test_split(data, test_size=0.2)
-        xtrain=train[:,:4096]
-        ytrain=train[:,4096]
-        xtest=test[:,:4096]
-        ytest=test[:,4096]
-        datax=data[:,:4096]
-        datay=data[:,4096]
-        
-        #creating classifier off of first dataset
-        if ind==0:
-            clf=classifier.fit(xtrain,ytrain)
-            print(classifier)
-            print('Classification Report for first dataset')
-            preds=clf.predict(xtest)
-            print(confusion_matrix(ytest, preds))
-            print(classification_report(ytest,preds))
-        #predicts outcome of dataset2 
-        if ind==1:
-            preds2=clf.predict(datax)
-            print(classifier)
-            print('Classification Report for second dataset')
-            print(confusion_matrix(datay, preds2))
-            print(classification_report(datay,preds2))
+    def run_clfs(classifier):
+        for ind, item in enumerate([first, second]):
+            tumor=np.ones(len(item[0]))
+            notumor=np.zeros(len(item[1]))
 
-for clfs in classifiers:
-    run_clfs(clfs)
+
+            together=np.concatenate((item[0], item[1]))
+            togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
+
+            data=np.append(together, togethery, axis=1)
+
+            #Shuffle data
+            np.random.seed(2)
+            shuff=np.random.permutation(len(data))
+            data=data[shuff,:]
+
+            #Train test split
+            train, test= train_test_split(data, test_size=0.2)
+            xtrain=train[:,:4096]
+            ytrain=train[:,4096]
+            xtest=test[:,:4096]
+            ytest=test[:,4096]
+            datax=data[:,:4096]
+            datay=data[:,4096]
+
+            #creating classifier off of first dataset
+            if ind==0:
+                clf=classifier.fit(xtrain,ytrain)
+                print(classifier)
+                print('Classification Report for first dataset')
+                preds=clf.predict(xtest)
+                print(confusion_matrix(ytest, preds))
+                print(classification_report(ytest,preds))
+            #predicts outcome of dataset2 
+            if ind==1:
+                preds2=clf.predict(datax)
+                print(classifier)
+                print('Classification Report for second dataset')
+                print(confusion_matrix(datay, preds2))
+                print(classification_report(datay,preds2))
+
+    for clfs in classifiers:
+        run_clfs(clfs)
     
 
 
