@@ -199,13 +199,6 @@ def main():
     tumor1, healthy1=downloadimages(set1paths, valid_image)
     tumor2, healthy2=downloadimages(set2paths, valid_image)
     
-    ## SEAN ADD 04/29/2022: Start
-    tumor1 = add_mean_images(tumor1)
-    tumor2 = add_mean_images(tumor2)
-    healthy1 = add_mean_images(tumor2)
-    healthy2 = add_mean_images(tumor2)
-    ## SEAN ADD 04/29/2022: End
-   
         # %% classifier function
 
     first=[tumor1,healthy1]
@@ -222,6 +215,8 @@ def main():
 
             #Adding tumorlist to healthy list
             together=np.concatenate((item[0], item[1]))
+            #Adding function call for standardizing dataset
+            together=add_mean_images(together)
             #Adding tumor response to healthy response
             togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
             
