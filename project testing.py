@@ -14,7 +14,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.naive_bayes import GaussianNB
-
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 
 
 #set working directory to folder that file is in
@@ -92,6 +93,31 @@ def downloadimages(paths,valid_images):
     healthy=np.asarray(healthy)
     return tumor, healthy
 
+## SEAN ADD 04/29/2022: Start
+def add_mean_images(img_array): #takes image array inputs "tumor" and "healthy"
+    
+    H = 64
+    W = 64
+    
+    name = f'{img_array=}'.partition('=')[0]
+    mean_image = np.mean(img_array, axis=0)
+    plt.imshow(np.reshape(mean_image,[H,W]), cmap = plt.get_cmap("gray"))
+    plt.title("Mean "+ name)
+    plt.show()
+
+    arr = np.zeros([len(img_array), H*W])
+
+    for i in range(len(img_array)):
+        H,W = np.shape([img_array[i]])
+        arr[i,:] = np.reshape(np.asarray(img_array[i]),[1,H*W])
+
+    number = len(img_array)
+    img_normalize = np.zeros([number, H*W])
+    img_normalize = arr + mean_image
+
+    return img_normalize
+## SEAN ADD 04/29/2022: End
+    
 def Whiten_White_Blacken_Black(img):
 
     NOISE_FLOOR = 20;
@@ -172,14 +198,21 @@ def main():
 
     tumor1, healthy1=downloadimages(set1paths, valid_image)
     tumor2, healthy2=downloadimages(set2paths, valid_image)
-            
+    
+    ## SEAN ADD 04/29/2022: Start
+    tumor1 = add_mean_images(tumor1)
+    tumor2 = add_mean_images(tumor2)
+    healthy1 = add_mean_images(tumor2)
+    healthy2 = add_mean_images(tumor2)
+    ## SEAN ADD 04/29/2022: End
+   
         # %% classifier function
 
     first=[tumor1,healthy1]
 
     second=[tumor2,healthy2]
 
-    classifiers=[GaussianNB(var_smoothing=10**-3),LogisticRegression(max_iter=500, solver='newton-cg')]
+    classifiers=[GaussianNB(var_smoothing=10**-3),LogisticRegression(max_iter=500, solver='newton-cg'), KNeighborsClassifier(n_neighbors=2, metric = 'minkowski', p = 2), SVC(max_iter=500, kernel='linear', random_state = 42)]
 
     def run_clfs(classifier):
         for ind, item in enumerate([first, second]):
