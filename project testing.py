@@ -219,7 +219,7 @@ def main():
             #Adding tumorlist to healthy list
             together=np.concatenate((item[0], item[1]))
             #Adding function call for standardizing dataset
-            together=add_mean_images(together)
+            #together=add_mean_images(together)
             #Adding tumor response to healthy response
             togethery=np.concatenate((tumor,notumor)).reshape(-1,1)
             
@@ -258,6 +258,7 @@ def main():
 
     for clfs in classifiers:
         run_clfs(clfs)
+        run_clfs(make_pipeline(StandardScaler(), clfs))
     
 
 
