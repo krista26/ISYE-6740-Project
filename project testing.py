@@ -16,6 +16,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 
 
 #set working directory to folder that file is in
@@ -205,7 +206,7 @@ def main():
 
     second=[tumor2,healthy2]
 
-    classifiers=[GaussianNB(var_smoothing=10**-3),LogisticRegression(max_iter=500, solver='newton-cg'), KNeighborsClassifier(n_neighbors=2, metric = 'minkowski', p = 2), SVC(max_iter=500, kernel='linear', random_state = 42)]
+    classifiers=[GaussianNB(var_smoothing=10**-3),LogisticRegression(max_iter=500, solver='newton-cg'), KNeighborsClassifier(n_neighbors=2, metric = 'minkowski', p = 2), SVC(max_iter=500, kernel='linear', random_state = 42), MLPClassifier(max_iter=500, solver='lbfgs', alpha = 1e-5, hidden_layer_sizes=(6,)), SVC(max_iter=500, kernel='rbf', gamma = 2)]
 
     def run_clfs(classifier):
         for ind, item in enumerate([first, second]):
